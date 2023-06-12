@@ -9,8 +9,6 @@ library(tidyverse)
 library(dplyr)
 
 #import datasets
-#I used summary_abundance_allvag.csv file
-
 CST_centroids_012920 <- read_csv('CST_centroids_012920.csv')
 
 #import dataset to run function
@@ -42,15 +40,11 @@ testing_df_not25 <- testing_df %>%
   mutate(species = "Others")
 testing_df <- rbind(testing_df_top25,testing_df_not25)
 
-#change species name format
-#testing_df$species <- gsub("_", " ", testing_df$species)
-
 #set sample ID order for plotting
 sample_order <- unique(paste0(as.numeric(substr(CST_centroids_012920$sub_CST, 
                                                 1,
                                                 nchar(CST_centroids_012920$sub_CST)-1)), 
                               "V"))  # centroids file
-#write.csv(raw_abun_perc_25_pos, 'top25_centroids.csv')
 
 cutoff <- 0.01
 cst_name <- "IV-B"
@@ -60,11 +54,6 @@ Species_colors <- read_csv("top25_centroids_colorcode.csv")
 `%notin%` <- Negate(`%in%`)
 temp <- raw_abun_perc%>% filter(sub_CST == cst_name)
 colnames(temp) <- c("sub_CST", "species", "per_sample_100")
-#temp <- temp_raw[temp_raw$species != 'Others']
-#not_temp <- temp_raw[temp_raw$species %notin% testing_df_top25$species]
-#temp <- temp[order(temp$species),]
-#less_than_cutoff <- temp %>% filter(per_sample_100 < cutoff)
-#temp <- temp %>% filter(per_sample_100 >= cutoff)
 not_temp <- temp[temp$species %notin% Species_colors$Species,]
 temp <- temp[temp$species %in% Species_colors$Species,]
 not_not_in <- temp %>% filter(per_sample_100 < plot_cutoff)
@@ -73,9 +62,6 @@ temp[nrow(temp)+1, ] <- list(cst_name,'Others', sum(not_not_in$per_sample_100) +
 temp <- temp[order(temp$species),]
 
 #make sure this is in alphabetical order
-#import Species_colors.csv file
-
-#Species_colors$Species <- gsub("_", " ", Species_colors$Species)
 #Species as factors table
 Species_colors <- Species_colors[Species_colors$Species %in% temp$species, ]
 Species_colors <- Species_colors[order(Species_colors$Species),]
@@ -89,19 +75,19 @@ names(Species_color_scheme) <- levels(Species_col$`Species_colors$Species`)
 
 library(ggplot2)
 library(ggrepel)
+
 # Use this to plot the centroids pie chart
 temp_label <- temp
 temp_label$per_sample_100[temp_label$per_sample_100 < 0.01] <- 0
-
 slices <- temp_label$per_sample_100
 lbls <- temp_label$species
 pct <- slices
 pct <- round(slices*10000)/100 #add percents to labels
+
 # ad % to labels
 lbldf <- data_frame(lbls, pct)
 pct <- paste0(pct, "%")
 pct[pct == "0%"] <-""
-
 
 df2 <- temp %>% 
   mutate(csum = rev(cumsum(rev(per_sample_100))), 
