@@ -22,22 +22,11 @@ selected <- select(data, Species, cst_name)
 temp <- selected[selected$Species %in% Species_colors$Species,]
 not_temp <- selected[selected$Species %notin% Species_colors$Species,]
 
-#temp <- temp_raw[temp_raw$species != 'Others']
-#not_temp <- temp_raw[temp_raw$species %notin% testing_df_top25$species]
-#temp <- temp[order(temp$species),]
-#temp <- temp %>% filter(per_sample_100 >= cutoff)
 temp[nrow(temp)+1, ] <- list('Others', sum(not_temp$`IV-E`))
-#less_than_cutoff <- temp %>% filter(`IV-E` < plot_cutoff)
-#other <-sum(less_than_cutoff$`IV-E`) + temp$`IV-E`[temp$Species == "Others"]
-#temp <- temp %>% filter(`IV-E` >= plot_cutoff)
-#temp[nrow(temp)+1, ] <- list('Others', other)
-#temp$`IV-E`[temp$Species == "Others"]<- other
 temp <- temp[order(temp$Species),]
 
 #make sure this is in alphabetical order
 #import Species_colors.csv file
-
-#Species_colors$Species <- gsub("_", " ", Species_colors$Species)
 #Species as factors table
 Species_colors <- Species_colors[Species_colors$Species %in% temp$Species, ]
 Species_colors <- Species_colors[order(Species_colors$Species),]
@@ -53,20 +42,19 @@ library(ggplot2)
 library(ggrepel)
 library(grid)
 library(gridExtra) 
+
 # Use this to plot the centroids pie chart
 temp_label <- temp
 temp_label$`IV-E`[temp_label$`IV-E`< 0.01] <- 0
-
 slices <- temp_label$`IV-E`
 lbls <- temp_label$Species
 pct <- slices
 pct <- round(slices*10000)/100 #add percents to labels
+
 # ad % to labels
 lbldf <- data_frame(lbls, pct)
 pct <- paste0(pct, "%")
 pct[pct == "0%"] <-""
-
-
 df2 <- temp %>% 
   mutate(csum = rev(cumsum(rev(`IV-E`))), 
          pos = `IV-E`/2 + lead(csum, 1),
